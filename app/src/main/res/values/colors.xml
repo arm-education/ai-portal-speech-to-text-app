@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ink">#092E35</color>
+    <color name="ink_soft">#4F666B</color>
+    <color name="teal">#007F86</color>
+    <color name="teal_dark">#00666C</color>
+    <color name="teal_pale">#DDF5F3</color>
+    <color name="mist">#F2F7F6</color>
+    <color name="line">#D9E6E4</color>
+    <color name="disabled">#A9BCBA</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="journal_background">#F2F7F6</color>
+    <color name="journal_surface">#FFFFFF</color>
+    <color name="journal_surface_muted">#F7FAF9</color>
+    <color name="journal_ink">#092E35</color>
+    <color name="journal_muted">#4F666B</color>
+    <color name="journal_faint">#7F9699</color>
+    <color name="journal_line">#D9E6E4</color>
+    <color name="journal_accent">#007F86</color>
+    <color name="journal_accent_dark">#00666C</color>
+    <color name="journal_accent_soft">#DDF5F3</color>
+    <color name="journal_recording">#A34845</color>
+    <color name="journal_recording_dark">#883B39</color>
+    <color name="journal_success">#36705D</color>
+    <color name="journal_error">#9B423F</color>
+</resources>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Whisper Journal</string>
+    <string name="hero_eyebrow">ON-DEVICE AI</string>
+    <string name="screen_title">What’s on your mind?</string>
+    <string name="screen_description">Record a thought and let your Arm-based mobile transcribe it privately.</string>
+    <string name="your_recording">Your recording</string>
+    <string name="entry_label">Journal entry</string>
+    <string name="private_badge">PRIVATE &#183; ON DEVICE</string>
+    <string name="transcript_placeholder">Your words will appear here after you record.</string>
+    <string name="record">Record</string>
+    <string name="stop_recording">Stop recording</string>
+    <string name="record_hint">Tap to record for up to 30 seconds.</string>
+    <string name="timer_initial">00:00 / 00:30</string>
+    <string name="model_settings">AI model</string>
+    <string name="model_settings_summary">Choose an on-device speech model</string>
+    <string name="model_label">Speech model</string>
+    <string name="import_model">Add or change model</string>
+    <string name="copy_entry">Copy journal entry</string>
+    <string name="save_entry">Save journal entry</string>
+    <string name="more_entry_actions">More entry actions</string>
+    <string name="clear_entry">Clear entry</string>
+    <string name="clear_entry_title">Clear this entry?</string>
+    <string name="clear_entry_message">This transcript will be removed from the screen. This cannot be undone.</string>
+    <string name="record_new_entry">Record new entry</string>
+    <string name="record_new_entry_title">Record a new entry?</string>
+    <string name="record_new_entry_message">Starting a new recording will replace the current transcript. Save it first if you want to keep it.</string>
+    <string name="cancel">Cancel</string>
+    <string name="privacy_footer">Audio and transcripts remain on this device.</string>
+    <string name="model_chevron">Expand model settings</string>
+</resources>

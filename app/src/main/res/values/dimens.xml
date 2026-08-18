@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_horizontal_padding">24dp</dimen>
+    <dimen name="screen_bottom_padding">40dp</dimen>
+    <dimen name="card_corner">26dp</dimen>
+    <dimen name="small_corner">16dp</dimen>
+</resources>
