@@ -2,9 +2,13 @@
 
 Whisper Journal is a private, on-device speech-to-text sample for Arm64 Android devices. Record up to 30 seconds of speech, transcribe it locally, then copy, save, clear, or replace the journal entry.
 
-![Whisper Journal running on Android](docs/images/whisper-journal.png)
+## Application views
 
-The application keeps the journaling interface separate from model-specific inference. `ModelRegistry` lists compatible packages, `AdapterRegistry` selects the runtime, and one of two supplied adapters performs preprocessing, inference, and token decoding.
+<p align="center">
+  <img src="images/whisper-startup.png" width="31%" alt="Whisper Journal before the model archive has been imported">
+  <img src="images/whisper-model-ready.png" width="31%" alt="Whisper Journal ready to generate an image from a prompt and seed">
+  <img src="images/whisper-generated.png" width="31%" alt="Whisper Journal displaying an image generated locally on Android">
+</p>
 
 ## Supported model packages
 
