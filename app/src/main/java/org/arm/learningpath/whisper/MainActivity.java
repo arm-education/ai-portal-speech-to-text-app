@@ -49,6 +49,10 @@ public final class MainActivity extends Activity {
     private static final long MAX_RECORDING_MILLIS = 30_000L;
     private static final String PREFERENCES_NAME = "whisper-journal";
     private static final String PREF_SELECTED_MODEL = "selected-model";
+    private static final String LEGACY_TINY_MODEL_ID = "whisper-tiny-executorch-v2";
+    private static final String LEGACY_SMALL_MODEL_ID = "whisper-small-executorch-v2";
+    private static final String TINY_MODEL_ID = "whisper-tiny-int8-xnnpack-executorch";
+    private static final String SMALL_MODEL_ID = "whisper-small-int8-xnnpack-executorch";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler timerHandler = new Handler(Looper.getMainLooper());
@@ -178,6 +182,13 @@ public final class MainActivity extends Activity {
                 PREF_SELECTED_MODEL,
                 models.get(0).id()
         );
+        if (LEGACY_TINY_MODEL_ID.equals(savedModelId)) {
+            savedModelId = TINY_MODEL_ID;
+            preferences.edit().putString(PREF_SELECTED_MODEL, savedModelId).apply();
+        } else if (LEGACY_SMALL_MODEL_ID.equals(savedModelId)) {
+            savedModelId = SMALL_MODEL_ID;
+            preferences.edit().putString(PREF_SELECTED_MODEL, savedModelId).apply();
+        }
         int selectedIndex = 0;
         for (int index = 0; index < models.size(); index++) {
             if (models.get(index).id().equals(savedModelId)) {

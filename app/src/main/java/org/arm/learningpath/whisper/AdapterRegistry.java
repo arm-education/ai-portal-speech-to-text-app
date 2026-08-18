@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class AdapterRegistry implements AutoCloseable {
-    public static final String EXECUTORCH_ID = "executorch-v2";
+    public static final String EXECUTORCH_ID = "executorch";
     public static final String LITERT_ID = "litert";
 
     private final Map<String, SpeechToTextAdapter> adapters;
@@ -15,7 +15,7 @@ public final class AdapterRegistry implements AutoCloseable {
             SpeechToTextAdapter liteRtAdapter
     ) {
         if (execuTorchAdapter == null || !EXECUTORCH_ID.equals(execuTorchAdapter.id())) {
-            throw new IllegalArgumentException("Expected the ExecuTorch V2 adapter");
+            throw new IllegalArgumentException("Expected the ExecuTorch adapter");
         }
         if (liteRtAdapter == null || !LITERT_ID.equals(liteRtAdapter.id())) {
             throw new IllegalArgumentException("Expected the LiteRT adapter");

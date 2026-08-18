@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Adapter for the optimized Tiny and Small V2 ExecuTorch packages. */
+/** Adapter for the optimized Tiny and Small ExecuTorch packages. */
 public final class ExecuTorchWhisperAdapter implements SpeechToTextAdapter {
     private static final String TAG = "WhisperExecuTorch";
     private static final int DECODER_START_TOKEN_ID = 50258;
@@ -54,7 +54,7 @@ public final class ExecuTorchWhisperAdapter implements SpeechToTextAdapter {
             File modelDirectory
     ) throws Exception {
         if (descriptor == null || !id().equals(descriptor.adapterId())) {
-            throw new IllegalArgumentException("This package is not an ExecuTorch V2 model");
+            throw new IllegalArgumentException("This package is not an ExecuTorch model");
         }
         File modelFile = requiredFile(modelDirectory, "model.pte");
         File preprocessorFile = requiredFile(modelDirectory, "whisper_preprocessor.pte");

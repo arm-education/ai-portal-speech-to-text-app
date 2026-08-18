@@ -8,20 +8,20 @@ public final class ModelRegistry {
     private static final List<WhisperModelDescriptor> MODELS = Collections.unmodifiableList(
             Arrays.asList(
                     new WhisperModelDescriptor(
-                            "whisper-tiny-executorch-v2",
-                            "Whisper Tiny · ExecuTorch V2",
+                            "whisper-tiny-int8-xnnpack-executorch",
+                            "Whisper Tiny · ExecuTorch",
                             AdapterRegistry.EXECUTORCH_ID,
-                            "",
-                            "whisper_tiny_executorch_v2.zip",
+                            "Arm/whisper-tiny-int8-xnnpack-executorch",
+                            "whisper-tiny-int8-xnnpack-executorch.zip",
                             80,
                             51865
                     ),
                     new WhisperModelDescriptor(
-                            "whisper-small-executorch-v2",
-                            "Whisper Small · ExecuTorch V2",
+                            "whisper-small-int8-xnnpack-executorch",
+                            "Whisper Small · ExecuTorch",
                             AdapterRegistry.EXECUTORCH_ID,
-                            "",
-                            "whisper_small_executorch_v2.zip",
+                            "Arm/whisper-small-int8-xnnpack-executorch",
+                            "whisper-small-int8-xnnpack-executorch.zip",
                             80,
                             51865
                     ),

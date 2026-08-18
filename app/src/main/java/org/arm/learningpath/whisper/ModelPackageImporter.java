@@ -445,11 +445,11 @@ public final class ModelPackageImporter {
     }
 
     private static String storageKey(WhisperModelDescriptor descriptor) {
-        // Keep the original V2 locations so an app upgrade can reuse imported models.
-        if ("whisper-tiny-executorch-v2".equals(descriptor.id())) {
+        // Keep the original locations so an app upgrade can reuse imported models.
+        if ("whisper-tiny-int8-xnnpack-executorch".equals(descriptor.id())) {
             return "tiny";
         }
-        if ("whisper-small-executorch-v2".equals(descriptor.id())) {
+        if ("whisper-small-int8-xnnpack-executorch".equals(descriptor.id())) {
             return "small";
         }
         return descriptor.id();
