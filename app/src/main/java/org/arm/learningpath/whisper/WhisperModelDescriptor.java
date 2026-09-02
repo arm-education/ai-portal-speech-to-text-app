@@ -10,6 +10,7 @@ public final class WhisperModelDescriptor {
     private final String packageHint;
     private final int melBins;
     private final int vocabularySize;
+    private final String configurationId;
 
     public WhisperModelDescriptor(
             String id,
@@ -19,6 +20,28 @@ public final class WhisperModelDescriptor {
             String packageHint,
             int melBins,
             int vocabularySize
+    ) {
+        this(
+                id,
+                displayName,
+                adapterId,
+                sourceId,
+                packageHint,
+                melBins,
+                vocabularySize,
+                id
+        );
+    }
+
+    public WhisperModelDescriptor(
+            String id,
+            String displayName,
+            String adapterId,
+            String sourceId,
+            String packageHint,
+            int melBins,
+            int vocabularySize,
+            String configurationId
     ) {
         this.id = requireText(id, "id");
         this.displayName = requireText(displayName, "displayName");
@@ -30,6 +53,7 @@ public final class WhisperModelDescriptor {
         }
         this.melBins = melBins;
         this.vocabularySize = vocabularySize;
+        this.configurationId = requireText(configurationId, "configurationId");
     }
 
     public String id() {
@@ -59,6 +83,11 @@ public final class WhisperModelDescriptor {
 
     public int vocabularySize() {
         return vocabularySize;
+    }
+
+    /** Supplied adapter profile that defines the complete execution contract. */
+    public String configurationId() {
+        return configurationId;
     }
 
     @Override

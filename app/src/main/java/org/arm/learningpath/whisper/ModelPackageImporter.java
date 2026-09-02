@@ -220,9 +220,9 @@ public final class ModelPackageImporter {
         }
         String modelPath = normalize(selection.model.entry.getName());
         String expectedFamily;
-        if (descriptor.id().contains("large-v3")) {
+        if (descriptor.configurationId().contains("large-v3")) {
             expectedFamily = "large-v3";
-        } else if (descriptor.id().contains("medium")) {
+        } else if (descriptor.configurationId().contains("medium")) {
             expectedFamily = "medium";
         } else {
             expectedFamily = "base";
@@ -247,7 +247,7 @@ public final class ModelPackageImporter {
                 || selection.model == null) {
             return;
         }
-        boolean expectsTiny = descriptor.id().contains("tiny");
+        boolean expectsTiny = descriptor.configurationId().contains("tiny");
         String modelPath = normalize(selection.model.entry.getName());
         Boolean packageIsTiny = null;
         if (modelPath.contains("whisper_tiny") || modelPath.contains("whisper-tiny")) {

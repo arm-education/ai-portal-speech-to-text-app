@@ -15,6 +15,11 @@ import java.util.Set;
 
 /** Adapter for the optimized Tiny and Small ExecuTorch packages. */
 public final class ExecuTorchWhisperAdapter implements SpeechToTextAdapter {
+    public static final String CONFIG_WHISPER_TINY =
+            "whisper-tiny-int8-xnnpack-executorch";
+    public static final String CONFIG_WHISPER_SMALL =
+            "whisper-small-int8-xnnpack-executorch";
+
     private static final String TAG = "WhisperExecuTorch";
     private static final int DECODER_START_TOKEN_ID = 50258;
     private static final int EOS_TOKEN_ID = 50257;

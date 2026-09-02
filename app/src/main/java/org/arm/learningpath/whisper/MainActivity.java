@@ -1,7 +1,5 @@
 package org.arm.learningpath.whisper;
 
-import org.arm.learningpath.whisper.litert.LiteRtWhisperAdapter;
-
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -122,10 +120,7 @@ public final class MainActivity extends Activity {
         modelImporter = new ModelPackageImporter(getApplicationContext());
         audioRecorder = new AudioRecorder();
         preferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE);
-        adapterRegistry = new AdapterRegistry(
-                new ExecuTorchWhisperAdapter(),
-                new LiteRtWhisperAdapter()
-        );
+        adapterRegistry = new AdapterRegistry();
 
         configureModelSpinner();
         updateTranscriptViews();

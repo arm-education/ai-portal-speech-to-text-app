@@ -1,11 +1,12 @@
 package org.arm.learningpath.whisper;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public final class ModelRegistry {
-    private static final List<WhisperModelDescriptor> MODELS = Collections.unmodifiableList(
+    private static final List<WhisperModelDescriptor> BUILT_IN_MODELS = Collections.unmodifiableList(
             Arrays.asList(
                     new WhisperModelDescriptor(
                             "whisper-tiny-int8-xnnpack-executorch",
@@ -54,8 +55,16 @@ public final class ModelRegistry {
                     )
             )
     );
+    private static final List<WhisperModelDescriptor> MODELS = createModels();
 
     private ModelRegistry() {
+    }
+
+    private static List<WhisperModelDescriptor> createModels() {
+        List<WhisperModelDescriptor> models = new ArrayList<>(BUILT_IN_MODELS);
+        models.addAll(CompatibleModelRegistry.models());
+        models.addAll(GeneratedAdapterRegistry.models());
+        return Collections.unmodifiableList(models);
     }
 
     public static List<WhisperModelDescriptor> models() {

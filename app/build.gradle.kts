@@ -28,3 +28,5 @@ dependencies {
     implementation("org.pytorch:executorch-android:1.3.1")
     implementation("com.google.ai.edge.litert:litert:2.1.6")
 }
+
+apply(from = "generated-runtime-dependencies.gradle.kts")

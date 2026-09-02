@@ -117,11 +117,12 @@ new WhisperModelDescriptor(
         "Arm/<model-repository-name>",
         "my-whisper-litert.zip",
         80,
-        51865
+        51865,
+        LiteRtWhisperAdapter.CONFIG_WHISPER_BASE
 )
 ```
 
-Add the descriptor to the list returned by `ModelRegistry.models()`. Also add the model's dimensions and decoder constants to the matching adapter profile, and update the package identity checks in `ModelPackageImporter.java`. Rebuild the APK and test the package on an Arm64 Android device.
+Import `org.arm.learningpath.whisper.litert.LiteRtWhisperAdapter`, then add the descriptor to the list returned by `CompatibleModelRegistry.models()`. Set `configurationId` to an existing adapter configuration only when the complete execution contract matches. Rebuild the APK and test the package on an Arm64 Android device.
 
 This route reuses an existing adapter. It is appropriate only when the complete package and inference contract match that adapter.
 
@@ -129,7 +130,9 @@ This route reuses an existing adapter. It is appropriate only when the complete 
 
 The application resolves model descriptors through `AdapterRegistry.java`. The supplied adapters support the split ExecuTorch Whisper export and the registered LiteRT `encode` and `decode` profiles.
 
-Implement `SpeechToTextAdapter` when a model changes the package layout, callable methods, tensor contract, runtime, preprocessing, or token decoding. Register the adapter in `AdapterRegistry.java`, construct it in `MainActivity.java`, and rebuild the APK. Packages that require additional model files also need corresponding changes to `ModelPackageImporter.java`.
+Implement `SpeechToTextAdapter` when a model changes the package layout, callable methods, tensor contract, runtime, preprocessing, or token decoding. Register generated adapters and descriptors in `GeneratedAdapterRegistry.java`, and add any runtime dependency to `app/generated-runtime-dependencies.gradle.kts`. Packages that require different model files also need corresponding changes to `ModelPackageImporter.java` and `download_model.py`.
+
+The `adapter-generation` directory contains the same download, inspection, prompt, and file-validation workflow used by the accompanying Learning Path. Generated changes still require an Android build, lint, and representative transcription tests on an Arm64 device.
 
 ## License
 

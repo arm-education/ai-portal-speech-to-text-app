@@ -1,7 +1,11 @@
 package org.arm.learningpath.whisper;
 
+import org.arm.learningpath.whisper.litert.LiteRtWhisperAdapter;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public final class AdapterRegistry implements AutoCloseable {
@@ -10,20 +14,22 @@ public final class AdapterRegistry implements AutoCloseable {
 
     private final Map<String, SpeechToTextAdapter> adapters;
 
-    public AdapterRegistry(
-            SpeechToTextAdapter execuTorchAdapter,
-            SpeechToTextAdapter liteRtAdapter
-    ) {
-        if (execuTorchAdapter == null || !EXECUTORCH_ID.equals(execuTorchAdapter.id())) {
-            throw new IllegalArgumentException("Expected the ExecuTorch adapter");
-        }
-        if (liteRtAdapter == null || !LITERT_ID.equals(liteRtAdapter.id())) {
-            throw new IllegalArgumentException("Expected the LiteRT adapter");
-        }
+    public AdapterRegistry() {
+        List<SpeechToTextAdapter> adapters = new ArrayList<>();
+        adapters.add(new ExecuTorchWhisperAdapter());
+        adapters.add(new LiteRtWhisperAdapter());
+        adapters.addAll(GeneratedAdapterRegistry.adapters());
+
         Map<String, SpeechToTextAdapter> registered = new LinkedHashMap<>();
-        registered.put(EXECUTORCH_ID, execuTorchAdapter);
-        registered.put(LITERT_ID, liteRtAdapter);
-        adapters = Collections.unmodifiableMap(registered);
+        for (SpeechToTextAdapter adapter : adapters) {
+            if (adapter == null || adapter.id() == null || adapter.id().trim().isEmpty()) {
+                throw new IllegalArgumentException("Every speech adapter needs an ID");
+            }
+            if (registered.put(adapter.id(), adapter) != null) {
+                throw new IllegalArgumentException("Duplicate speech adapter ID: " + adapter.id());
+            }
+        }
+        this.adapters = Collections.unmodifiableMap(registered);
     }
 
     public SpeechToTextAdapter forModel(WhisperModelDescriptor descriptor) {

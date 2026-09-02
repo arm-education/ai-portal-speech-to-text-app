@@ -26,6 +26,10 @@ import java.util.Set;
 
 /** Runs the Arm Whisper Base, Medium, and Large V3 multi-signature LiteRT exports. */
 public final class LiteRtWhisperAdapter implements SpeechToTextAdapter {
+    public static final String CONFIG_WHISPER_BASE = "whisper-base-litert";
+    public static final String CONFIG_WHISPER_MEDIUM = "whisper-medium-litert";
+    public static final String CONFIG_WHISPER_LARGE_V3 = "whisper-large-v3-litert";
+
     private static final float MASKED_LOGIT = -1.0e30f;
     private static final int MAX_PACKAGE_DEPTH = 8;
 
@@ -707,22 +711,22 @@ public final class LiteRtWhisperAdapter implements SpeechToTextAdapter {
 
         static DecoderProfile forModel(WhisperModelDescriptor descriptor) {
             DecoderProfile result;
-            switch (descriptor.id()) {
-                case "whisper-base-litert":
+            switch (descriptor.configurationId()) {
+                case CONFIG_WHISPER_BASE:
                     result = new DecoderProfile(
                             6, 8, 512, 80, 51865,
                             new int[]{50258, 50259, 50359, 50363},
                             COMMON_SUPPRESS
                     );
                     break;
-                case "whisper-medium-litert":
+                case CONFIG_WHISPER_MEDIUM:
                     result = new DecoderProfile(
                             24, 16, 1024, 80, 51865,
                             new int[]{50258, 50259, 50359, 50363},
                             COMMON_SUPPRESS
                     );
                     break;
-                case "whisper-large-v3-litert":
+                case CONFIG_WHISPER_LARGE_V3:
                     result = new DecoderProfile(
                             32, 20, 1280, 128, 51866,
                             new int[]{50258, 50259, 50360, 50364},
@@ -731,7 +735,8 @@ public final class LiteRtWhisperAdapter implements SpeechToTextAdapter {
                     break;
                 default:
                     throw new IllegalArgumentException(
-                            "The LiteRT adapter has no decoder profile for " + descriptor.id()
+                            "The LiteRT adapter has no decoder profile for "
+                                    + descriptor.configurationId()
                     );
             }
             if (descriptor.melBins() != result.melBins
