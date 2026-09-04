@@ -1,6 +1,6 @@
 # Whisper Journal Android application
 
-This example application accompanies the [Arm Learning Path for running speech recognition models from the Arm AI Portal](https://learn.arm.com/learning-paths/mobile-graphics-and-gaming/ai-portal-audio-to-text). It is intended for learning how models run on devices and is not a reference production application. It is provided under the [Arm Education End User License Agreement](LICENSE.md).
+This example application accompanies the [Arm Learning Path for running speech recognition models from the Arm AI Portal](https://learn.arm.com/learning-paths/mobile-graphics-and-gaming/ai-portal-audio-to-text). It is intended for learning how models run on devices and is not a reference production application.
 
 This Android application records speech and transcribes it locally on an Arm64 phone or emulator. It includes two supplied adapters:
 
