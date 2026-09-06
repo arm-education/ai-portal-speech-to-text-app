@@ -18,7 +18,7 @@ VERIFIED_MODELS = {
     },
     "Arm/whisper-medium-int8-litert": {
         "runtime": "litert",
-        "model": "whisper_medium_vivo_litert_optimized.tflite",
+        "model": "whisper-medium-int8-litert.tflite",
         "tokenizer": "tokenizer.json",
     },
     "Arm/whisper-large-v3-int8-litert": {
@@ -28,15 +28,15 @@ VERIFIED_MODELS = {
     },
     "Arm/whisper-tiny-int8-xnnpack-executorch": {
         "runtime": "executorch",
-        "model": "pte_optimized/whisper_tiny_vivo_executorch_optimized.pte",
-        "preprocessor": "pte_optimized/whisper_preprocessor.pte",
-        "tokenizer": "pte_optimized/tokenizer.json",
+        "model": "whisper_tiny_vivo_executorch_optimized.pte",
+        "preprocessor": "whisper_preprocessor.pte",
+        "tokenizer": "tokenizer.json",
     },
     "Arm/whisper-small-int8-xnnpack-executorch": {
         "runtime": "executorch",
-        "model": "pte_optimized/whisper_small_vivo_executorch_optimized.pte",
-        "preprocessor": "pte_optimized/whisper_preprocessor.pte",
-        "tokenizer": "pte_optimized/tokenizer.json",
+        "model": "whisper_small_vivo_executorch_optimized.pte",
+        "preprocessor": "whisper_preprocessor.pte",
+        "tokenizer": "tokenizer.json",
     },
 }
 
