@@ -91,6 +91,8 @@ adb push "$MODEL_PACKAGE" /sdcard/Download/
 
 ## Open and run the application
 
+If you use an emulator, enable access to the development machine's microphone in the emulator settings before recording. Grant microphone access in the host operating system if prompted.
+
 1. Clone or download this repository.
 2. Open the repository root in Android Studio.
 3. Wait for Gradle sync to finish.
