@@ -143,7 +143,7 @@ public final class ModelPackageImporter {
 
             String path = normalize(entry.getName());
             String baseName = baseName(path);
-            if (AdapterRegistry.EXECUTORCH_STATIC_CACHE_ID.equals(
+            if (AdapterRegistry.EXECUTORCH_SPLIT_ID.equals(
                     descriptor.adapterId()
             )) {
                 if (baseName.equals("whisper_base_encoder_s1500_static.pte")) {
@@ -215,10 +215,10 @@ public final class ModelPackageImporter {
             WhisperModelDescriptor descriptor
     ) throws IOException {
         List<String> missing = new ArrayList<>();
-        boolean staticCache = AdapterRegistry.EXECUTORCH_STATIC_CACHE_ID.equals(
+        boolean splitModel = AdapterRegistry.EXECUTORCH_SPLIT_ID.equals(
                 descriptor.adapterId()
         );
-        if (staticCache) {
+        if (splitModel) {
             if (selection.encoder == null) {
                 missing.add("the encoder .pte");
             }
@@ -239,7 +239,7 @@ public final class ModelPackageImporter {
             missing.add("tokenizer.json");
         }
         if ((AdapterRegistry.EXECUTORCH_ID.equals(descriptor.adapterId())
-                || staticCache)
+                || splitModel)
                 && selection.preprocessor == null) {
             missing.add("whisper_preprocessor.pte");
         }
@@ -422,10 +422,10 @@ public final class ModelPackageImporter {
             throw new IOException("The model directory is missing");
         }
         List<String> missing = new ArrayList<>();
-        boolean staticCache = AdapterRegistry.EXECUTORCH_STATIC_CACHE_ID.equals(
+        boolean splitModel = AdapterRegistry.EXECUTORCH_SPLIT_ID.equals(
                 descriptor.adapterId()
         );
-        if (staticCache) {
+        if (splitModel) {
             for (String name : new String[]{
                     "encoder.pte",
                     "decoder_prefill.pte",
@@ -447,7 +447,7 @@ public final class ModelPackageImporter {
             missing.add("tokenizer.json");
         }
         if ((AdapterRegistry.EXECUTORCH_ID.equals(descriptor.adapterId())
-                || staticCache)
+                || splitModel)
                 && !nonEmptyFile(directory, "whisper_preprocessor.pte")) {
             missing.add("whisper_preprocessor.pte");
         }

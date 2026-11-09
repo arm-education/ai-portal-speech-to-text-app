@@ -39,7 +39,7 @@ VERIFIED_MODELS = {
         "tokenizer": "tokenizer.json",
     },
     "Arm/whisper-base-int8-xnnpack-executorch-vivo-x300": {
-        "runtime": "executorch-static-cache",
+        "runtime": "executorch-split",
         "encoder": "whisper_base_encoder_s1500_static.pte",
         "prefill": "whisper_base_decoder_prefill_s448_static.pte",
         "decoder": "whisper_base_decoder_decode_s448_static.pte",
@@ -253,7 +253,7 @@ def collect_executorch_package(
     return files
 
 
-def collect_static_cache_executorch_package(
+def collect_split_executorch_package(
     snapshot_dir: Path,
     preprocessor_snapshot_dir: Path,
     tokenizer_snapshot_dir: Path,
@@ -283,7 +283,7 @@ def collect_static_cache_executorch_package(
     ]
     for path, _ in files:
         if not path.is_file():
-            raise SystemExit(f"Missing static-cache ExecuTorch package file: {path}")
+            raise SystemExit(f"Missing split ExecuTorch package file: {path}")
     for name in PACKAGE_METADATA:
         path = snapshot_dir / name
         if path.is_file():
@@ -368,10 +368,10 @@ def main() -> None:
             preprocessor_filename,
             tokenizer_filename,
         )
-    elif model["runtime"] == "executorch-static-cache":
+    elif model["runtime"] == "executorch-split":
         if args.filename:
             raise SystemExit(
-                "--filename is not supported for the three-program static-cache model."
+                "--filename is not supported for the split ExecuTorch model."
             )
         model_filenames = [
             model["encoder"],
@@ -405,7 +405,7 @@ def main() -> None:
             local_dir=tokenizer_snapshot_dir,
             allow_patterns=[model["tokenizer"]],
         )
-        files = collect_static_cache_executorch_package(
+        files = collect_split_executorch_package(
             snapshot_dir,
             preprocessor_snapshot_dir,
             tokenizer_snapshot_dir,

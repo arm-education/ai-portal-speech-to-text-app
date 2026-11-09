@@ -29,7 +29,7 @@ public final class ModelRegistry {
                     new WhisperModelDescriptor(
                             "whisper-base-int8-xnnpack-executorch-vivo-x300",
                             "Whisper Base · ExecuTorch",
-                            AdapterRegistry.EXECUTORCH_STATIC_CACHE_ID,
+                            AdapterRegistry.EXECUTORCH_SPLIT_ID,
                             "Arm/whisper-base-int8-xnnpack-executorch-vivo-x300",
                             "whisper-base-int8-xnnpack-executorch-vivo-x300.zip",
                             80,

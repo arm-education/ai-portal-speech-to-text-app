@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Set;
 
 /** Adapter for the three-program Whisper Base export with fixed decoder KV caches. */
-public final class ExecuTorchStaticCacheWhisperAdapter implements SpeechToTextAdapter {
-    private static final String TAG = "WhisperStaticCache";
+public final class ExecuTorchSplitWhisperAdapter implements SpeechToTextAdapter {
+    private static final String TAG = "WhisperSplit";
     private static final String FORWARD = "forward";
     // ExecuTorch 1.3.1 shares a native thread pool across modules. Changing its
     // size after loadMethod() invalidates the pool retained by XNNPACK methods.
@@ -60,7 +60,7 @@ public final class ExecuTorchStaticCacheWhisperAdapter implements SpeechToTextAd
 
     @Override
     public String id() {
-        return AdapterRegistry.EXECUTORCH_STATIC_CACHE_ID;
+        return AdapterRegistry.EXECUTORCH_SPLIT_ID;
     }
 
     @Override
@@ -70,7 +70,7 @@ public final class ExecuTorchStaticCacheWhisperAdapter implements SpeechToTextAd
     ) throws Exception {
         if (descriptor == null || !id().equals(descriptor.adapterId())) {
             throw new IllegalArgumentException(
-                    "This package is not a static-cache ExecuTorch model"
+                    "This package is not a split ExecuTorch model"
             );
         }
 
@@ -137,7 +137,7 @@ public final class ExecuTorchStaticCacheWhisperAdapter implements SpeechToTextAd
     ) {
         if (!isLoaded()) {
             throw new IllegalStateException(
-                    "Load the static-cache ExecuTorch model before transcribing"
+                    "Load the split ExecuTorch model before transcribing"
             );
         }
         if (audio16Khz == null || audio16Khz.length == 0) {

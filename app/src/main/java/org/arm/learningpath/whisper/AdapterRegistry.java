@@ -10,7 +10,7 @@ import java.util.Map;
 
 public final class AdapterRegistry implements AutoCloseable {
     public static final String EXECUTORCH_ID = "executorch";
-    public static final String EXECUTORCH_STATIC_CACHE_ID = "executorch-static-cache";
+    public static final String EXECUTORCH_SPLIT_ID = "executorch-split";
     public static final String LITERT_ID = "litert";
 
     private final Map<String, SpeechToTextAdapter> adapters;
@@ -18,7 +18,7 @@ public final class AdapterRegistry implements AutoCloseable {
     public AdapterRegistry() {
         List<SpeechToTextAdapter> adapters = new ArrayList<>();
         adapters.add(new ExecuTorchWhisperAdapter());
-        adapters.add(new ExecuTorchStaticCacheWhisperAdapter());
+        adapters.add(new ExecuTorchSplitWhisperAdapter());
         adapters.add(new LiteRtWhisperAdapter());
         adapters.addAll(GeneratedAdapterRegistry.adapters());
 

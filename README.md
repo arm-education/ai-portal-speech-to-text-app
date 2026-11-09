@@ -5,7 +5,7 @@ This example application accompanies the [Arm Learning Path for running speech r
 This Android application records speech and transcribes it locally on an Arm64 phone or emulator. It includes three supplied adapters:
 
 - `ExecuTorchWhisperAdapter` runs the Whisper Tiny and Small INT8 packages with ExecuTorch and XNNPACK.
-- `ExecuTorchStaticCacheWhisperAdapter` runs the three-program Whisper Base INT8 package with ExecuTorch and XNNPACK.
+- `ExecuTorchSplitWhisperAdapter` runs a Whisper Base INT8 model split across three separate .pte files (encoder, prefill, and decode), using ExecuTorch and XNNPACK.
 - `LiteRtWhisperAdapter` provides execution profiles for the Whisper Base, Medium, and Large V3 INT8 packages with LiteRT and XNNPACK.
 
 The application imports model packages at run time, so the model files are not stored in the Android application package (APK).
