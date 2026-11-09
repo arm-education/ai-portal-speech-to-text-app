@@ -17,6 +17,9 @@ import java.util.Set;
 public final class ExecuTorchStaticCacheWhisperAdapter implements SpeechToTextAdapter {
     private static final String TAG = "WhisperStaticCache";
     private static final String FORWARD = "forward";
+    // ExecuTorch 1.3.1 shares a native thread pool across modules. Changing its
+    // size after loadMethod() invalidates the pool retained by XNNPACK methods.
+    private static final int NUM_THREADS = 4;
     private static final String ENCODER_FILE = "encoder.pte";
     private static final String DECODER_PREFILL_FILE = "decoder_prefill.pte";
     private static final String DECODER_DECODE_FILE = "decoder_decode.pte";
@@ -34,15 +37,17 @@ public final class ExecuTorchStaticCacheWhisperAdapter implements SpeechToTextAd
     private static final int REPETITION_GUARD_REPEATS = 3;
     private static final int REPETITION_GUARD_MIN_PATTERN = 2;
     private static final int REPETITION_GUARD_MAX_PATTERN = 16;
+    // Multilingual Whisper Base generation_config.json. EOS is suppressed only
+    // for the first free token, so later decoding can terminate normally.
     private static final int[] SUPPRESS_TOKENS = {
             1, 2, 7, 8, 9, 10, 14, 25, 26, 27, 28, 29, 31, 58, 59, 60, 61, 62,
-            63, 90, 91, 92, 93, 357, 366, 438, 532, 685, 705, 796, 930, 1058, 1220,
-            1267, 1279, 1303, 1343, 1377, 1391, 1635, 1782, 1875, 2162, 2361, 2488,
-            3467, 4008, 4211, 4600, 4808, 5299, 5855, 6329, 7203, 9609, 9959,
-            10563, 10786, 11420, 11709, 11907, 13163, 13697, 13700, 14808, 15306,
-            16410, 16791, 17992, 19203, 19510, 20724, 22305, 22935, 27007, 30109,
-            30420, 33409, 34949, 40283, 40493, 40549, 47282, 49146, 50257, 50359,
-            50360, 50361
+            63, 90, 91, 92, 93, 359, 503, 522, 542, 873, 893, 902, 918, 922, 931,
+            1350, 1853, 1982, 2460, 2627, 3246, 3253, 3268, 3536, 3846, 3961, 4183,
+            4667, 6585, 6647, 7273, 9061, 9383, 10428, 10929, 11938, 12033, 12331,
+            12562, 13793, 14157, 14635, 15265, 15618, 16553, 16604, 18362, 18956,
+            20075, 21675, 22520, 26130, 26161, 26435, 28279, 29464, 31650, 32302,
+            32470, 36865, 42863, 47425, 49870, 50254, 50258, 50358, 50359, 50360,
+            50361, 50362
     };
     private static final Set<Integer> SUPPRESSED = createSuppressedSet();
 
@@ -81,13 +86,13 @@ public final class ExecuTorchStaticCacheWhisperAdapter implements SpeechToTextAd
         Module nextDecode = null;
         Module nextPreprocessor = null;
         try {
-            nextEncoder = loadForwardModule(encoderFile, 4);
-            nextPrefill = loadForwardModule(prefillFile, 4);
-            nextDecode = loadForwardModule(decodeFile, 4);
+            nextEncoder = loadForwardModule(encoderFile);
+            nextPrefill = loadForwardModule(prefillFile);
+            nextDecode = loadForwardModule(decodeFile);
             nextPreprocessor = Module.load(
                     preprocessorFile.getAbsolutePath(),
                     Module.LOAD_MODE_MMAP,
-                    2
+                    NUM_THREADS
             );
             requireMethod(nextPreprocessor, FORWARD, "audio preprocessor");
             nextPreprocessor.loadMethod(FORWARD);
@@ -257,14 +262,16 @@ public final class ExecuTorchStaticCacheWhisperAdapter implements SpeechToTextAd
         int semanticOffset = outputs.length - PREFILL_SEMANTIC_OUTPUT_COUNT;
         DecoderState state = new DecoderState();
         for (int layer = 0; layer < DECODER_LAYERS; layer++) {
+            // Prefill returns (length, value, key), whereas decode takes and
+            // updates (length, key, value). The equal K/V shapes hide a swap.
             int selfOffset = semanticOffset + 1 + layer * 3;
             state.selfLengths[layer] = outputs[selfOffset].toTensor();
-            state.selfKeys[layer] = outputs[selfOffset + 1].toTensor();
-            state.selfValues[layer] = outputs[selfOffset + 2].toTensor();
+            state.selfKeys[layer] = outputs[selfOffset + 2].toTensor();
+            state.selfValues[layer] = outputs[selfOffset + 1].toTensor();
 
             int crossOffset = semanticOffset + 19 + layer * 3;
-            state.crossKeys[layer] = outputs[crossOffset + 1].toTensor();
-            state.crossValues[layer] = outputs[crossOffset + 2].toTensor();
+            state.crossKeys[layer] = outputs[crossOffset + 2].toTensor();
+            state.crossValues[layer] = outputs[crossOffset + 1].toTensor();
         }
         state.logits = outputs[outputs.length - 1].toTensor();
         return state;
@@ -361,8 +368,8 @@ public final class ExecuTorchStaticCacheWhisperAdapter implements SpeechToTextAd
         return 0;
     }
 
-    private static Module loadForwardModule(File file, int threads) {
-        Module module = Module.load(file.getAbsolutePath(), Module.LOAD_MODE_MMAP, threads);
+    private static Module loadForwardModule(File file) {
+        Module module = Module.load(file.getAbsolutePath(), Module.LOAD_MODE_MMAP, NUM_THREADS);
         try {
             requireMethod(module, FORWARD, file.getName());
             module.loadMethod(FORWARD);
