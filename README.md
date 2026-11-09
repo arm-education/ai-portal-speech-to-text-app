@@ -2,9 +2,10 @@
 
 This example application accompanies the [Arm Learning Path for running speech recognition models from the Arm AI Portal](https://learn.arm.com/learning-paths/mobile-graphics-and-gaming/ai-portal-audio-to-text). It is intended for learning how models run on devices and is not a reference production application.
 
-This Android application records speech and transcribes it locally on an Arm64 phone or emulator. It includes two supplied adapters:
+This Android application records speech and transcribes it locally on an Arm64 phone or emulator. It includes three supplied adapters:
 
 - `ExecuTorchWhisperAdapter` runs the Whisper Tiny and Small INT8 packages with ExecuTorch and XNNPACK.
+- `ExecuTorchStaticCacheWhisperAdapter` runs the three-program Whisper Base INT8 package with ExecuTorch and XNNPACK.
 - `LiteRtWhisperAdapter` provides execution profiles for the Whisper Base, Medium, and Large V3 INT8 packages with LiteRT and XNNPACK.
 
 The application imports model packages at run time, so the model files are not stored in the Android application package (APK).
@@ -29,15 +30,16 @@ Whisper Journal records up to 30 seconds of mono audio and performs English tran
 
 ## Registered model packages
 
-The model registry selects one of the two supplied adapters for the chosen package. The importer checks and installs the package, and the adapter handles audio preprocessing, runtime calls, and token decoding.
+The model registry selects the supplied adapter for the chosen package. The importer checks and installs the package, and the adapter handles audio preprocessing, runtime calls, and token decoding.
 
 | Model | Runtime | Import this package | Validation |
 | --- | --- | --- | --- |
 | [Whisper Tiny INT8](https://huggingface.co/Arm/whisper-tiny-int8-xnnpack-executorch) | ExecuTorch | `whisper-tiny-int8-xnnpack-executorch.zip` | Validated on an Arm64 Android phone |
 | [Whisper Small INT8](https://huggingface.co/Arm/whisper-small-int8-xnnpack-executorch) | ExecuTorch | `whisper-small-int8-xnnpack-executorch.zip` | Validated on an Arm64 Android phone |
+| [Whisper Base INT8 for Vivo X300](https://huggingface.co/Arm/whisper-base-int8-xnnpack-executorch-vivo-x300) | ExecuTorch | `whisper-base-int8-xnnpack-executorch-vivo-x300.zip` | Registered; target-device verification pending |
 | [Whisper Base INT8](https://huggingface.co/Arm/whisper-base-int8-litert) | LiteRT | `whisper-base-int8-litert.zip` | Validated on an Arm64 Android phone |
-| [Whisper Medium INT8](https://huggingface.co/Arm/whisper-medium-int8-litert) | LiteRT | `whisper-medium-int8-litert.zip` | Registered; target-device verification pending |
-| [Whisper Large V3 INT8](https://huggingface.co/Arm/whisper-large-v3-int8-litert) | LiteRT | `whisper-large-v3-int8-litert.zip` | Registered; target-device verification pending |
+| [Whisper Medium INT8](https://huggingface.co/Arm/whisper-medium-int8-litert) | LiteRT | `whisper-medium-int8-litert.zip` | Validated on an Arm64 Android phone |
+| [Whisper Large V3 INT8](https://huggingface.co/Arm/whisper-large-v3-int8-litert) | LiteRT | `whisper-large-v3-int8-litert.zip` | Validated on an Arm64 Android phone |
 
 ## Download a model
 

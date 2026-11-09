@@ -38,6 +38,16 @@ VERIFIED_MODELS = {
         "preprocessor": "whisper_preprocessor.pte",
         "tokenizer": "tokenizer.json",
     },
+    "Arm/whisper-base-int8-xnnpack-executorch-vivo-x300": {
+        "runtime": "executorch-static-cache",
+        "encoder": "whisper_base_encoder_s1500_static.pte",
+        "prefill": "whisper_base_decoder_prefill_s448_static.pte",
+        "decoder": "whisper_base_decoder_decode_s448_static.pte",
+        "preprocessor_repo": "Arm/whisper-tiny-int8-xnnpack-executorch",
+        "preprocessor": "whisper_preprocessor.pte",
+        "tokenizer_repo": "openai/whisper-base",
+        "tokenizer": "tokenizer.json",
+    },
 }
 
 MODEL_SUFFIXES = {".pte", ".tflite"}
@@ -243,6 +253,44 @@ def collect_executorch_package(
     return files
 
 
+def collect_static_cache_executorch_package(
+    snapshot_dir: Path,
+    preprocessor_snapshot_dir: Path,
+    tokenizer_snapshot_dir: Path,
+    model: dict[str, str],
+) -> list[tuple[Path, str]]:
+    files = [
+        (
+            repository_file(snapshot_dir, model["encoder"]),
+            PurePosixPath(model["encoder"]).name,
+        ),
+        (
+            repository_file(snapshot_dir, model["prefill"]),
+            PurePosixPath(model["prefill"]).name,
+        ),
+        (
+            repository_file(snapshot_dir, model["decoder"]),
+            PurePosixPath(model["decoder"]).name,
+        ),
+        (
+            repository_file(preprocessor_snapshot_dir, model["preprocessor"]),
+            "whisper_preprocessor.pte",
+        ),
+        (
+            repository_file(tokenizer_snapshot_dir, model["tokenizer"]),
+            "tokenizer.json",
+        ),
+    ]
+    for path, _ in files:
+        if not path.is_file():
+            raise SystemExit(f"Missing static-cache ExecuTorch package file: {path}")
+    for name in PACKAGE_METADATA:
+        path = snapshot_dir / name
+        if path.is_file():
+            files.append((path, name))
+    return files
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Download and package a Whisper model for Whisper Journal."
@@ -274,26 +322,32 @@ def main() -> None:
         snapshot_download(repo_id=args.repo_id, local_dir=snapshot_dir)
         filename = primary_model_filename(snapshot_dir, args.filename)
         files = collect_compatible_package(snapshot_dir, filename)
-    else:
+    elif model["runtime"] == "litert":
         filename = args.filename or model["model"]
-        expected_suffix = ".tflite" if model["runtime"] == "litert" else ".pte"
-        if PurePosixPath(filename).suffix.lower() != expected_suffix:
+        if PurePosixPath(filename).suffix.lower() != ".tflite":
             raise SystemExit(
-                f"Expected a {expected_suffix} model filename for {args.repo_id}: {filename}"
+                f"Expected a .tflite model filename for {args.repo_id}: {filename}"
             )
         print(
             f"Downloading {args.repo_id}/{filename} to {snapshot_dir} ...",
             file=output_stream,
         )
-
-    if model is not None and model["runtime"] == "litert":
         snapshot_download(
             repo_id=args.repo_id,
             local_dir=snapshot_dir,
             allow_patterns=[filename, *LITERT_SUPPORT_FILES],
         )
         files = collect_litert_package(snapshot_dir, filename)
-    elif model is not None:
+    elif model["runtime"] == "executorch":
+        filename = args.filename or model["model"]
+        if PurePosixPath(filename).suffix.lower() != ".pte":
+            raise SystemExit(
+                f"Expected a .pte model filename for {args.repo_id}: {filename}"
+            )
+        print(
+            f"Downloading {args.repo_id}/{filename} to {snapshot_dir} ...",
+            file=output_stream,
+        )
         preprocessor_filename, tokenizer_filename = executorch_support_files(
             filename,
             model,
@@ -314,6 +368,51 @@ def main() -> None:
             preprocessor_filename,
             tokenizer_filename,
         )
+    elif model["runtime"] == "executorch-static-cache":
+        if args.filename:
+            raise SystemExit(
+                "--filename is not supported for the three-program static-cache model."
+            )
+        model_filenames = [
+            model["encoder"],
+            model["prefill"],
+            model["decoder"],
+        ]
+        print(
+            f"Downloading the three-program {args.repo_id} package to {snapshot_dir} ...",
+            file=output_stream,
+        )
+        snapshot_download(
+            repo_id=args.repo_id,
+            local_dir=snapshot_dir,
+            allow_patterns=[*model_filenames, *PACKAGE_METADATA],
+        )
+
+        preprocessor_repo = model["preprocessor_repo"]
+        preprocessor_snapshot_dir = (
+            output_dir / preprocessor_repo.replace("/", "__")
+        )
+        snapshot_download(
+            repo_id=preprocessor_repo,
+            local_dir=preprocessor_snapshot_dir,
+            allow_patterns=[model["preprocessor"]],
+        )
+
+        tokenizer_repo = model["tokenizer_repo"]
+        tokenizer_snapshot_dir = output_dir / tokenizer_repo.replace("/", "__")
+        snapshot_download(
+            repo_id=tokenizer_repo,
+            local_dir=tokenizer_snapshot_dir,
+            allow_patterns=[model["tokenizer"]],
+        )
+        files = collect_static_cache_executorch_package(
+            snapshot_dir,
+            preprocessor_snapshot_dir,
+            tokenizer_snapshot_dir,
+            model,
+        )
+    else:
+        raise SystemExit(f"Unsupported verified model runtime: {model['runtime']}")
 
     archive = output_dir / f"{args.repo_id.split('/')[-1]}.zip"
     package_files(archive, files)

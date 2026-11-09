@@ -143,7 +143,33 @@ public final class ModelPackageImporter {
 
             String path = normalize(entry.getName());
             String baseName = baseName(path);
-            if (AdapterRegistry.EXECUTORCH_ID.equals(descriptor.adapterId())) {
+            if (AdapterRegistry.EXECUTORCH_STATIC_CACHE_ID.equals(
+                    descriptor.adapterId()
+            )) {
+                if (baseName.equals("whisper_base_encoder_s1500_static.pte")) {
+                    selection.encoder = better(selection.encoder, entry, 100);
+                } else if (baseName.equals(
+                        "whisper_base_decoder_prefill_s448_static.pte"
+                )) {
+                    selection.decoderPrefill = better(
+                            selection.decoderPrefill,
+                            entry,
+                            100
+                    );
+                } else if (baseName.equals(
+                        "whisper_base_decoder_decode_s448_static.pte"
+                )) {
+                    selection.decoderDecode = better(
+                            selection.decoderDecode,
+                            entry,
+                            100
+                    );
+                } else if (baseName.equals("whisper_preprocessor.pte")) {
+                    selection.preprocessor = better(selection.preprocessor, entry, 10);
+                } else if (baseName.equals("tokenizer.json")) {
+                    selection.tokenizer = better(selection.tokenizer, entry, 10);
+                }
+            } else if (AdapterRegistry.EXECUTORCH_ID.equals(descriptor.adapterId())) {
                 if (baseName.endsWith(".pte")
                         && !baseName.equals("whisper_preprocessor.pte")) {
                     int priority = (path.contains("optimized") ? 20 : 0)
@@ -189,15 +215,31 @@ public final class ModelPackageImporter {
             WhisperModelDescriptor descriptor
     ) throws IOException {
         List<String> missing = new ArrayList<>();
-        if (selection.model == null || selection.model.priority <= 0) {
-            missing.add(AdapterRegistry.LITERT_ID.equals(descriptor.adapterId())
-                    ? "the INT8 .tflite model"
-                    : "the optimized model.pte");
+        boolean staticCache = AdapterRegistry.EXECUTORCH_STATIC_CACHE_ID.equals(
+                descriptor.adapterId()
+        );
+        if (staticCache) {
+            if (selection.encoder == null) {
+                missing.add("the encoder .pte");
+            }
+            if (selection.decoderPrefill == null) {
+                missing.add("the decoder prefill .pte");
+            }
+            if (selection.decoderDecode == null) {
+                missing.add("the decoder decode .pte");
+            }
+        } else if (selection.model == null || selection.model.priority <= 0) {
+            missing.add(
+                    AdapterRegistry.LITERT_ID.equals(descriptor.adapterId())
+                            ? "the INT8 .tflite model"
+                            : "the optimized model.pte"
+            );
         }
         if (selection.tokenizer == null) {
             missing.add("tokenizer.json");
         }
-        if (AdapterRegistry.EXECUTORCH_ID.equals(descriptor.adapterId())
+        if ((AdapterRegistry.EXECUTORCH_ID.equals(descriptor.adapterId())
+                || staticCache)
                 && selection.preprocessor == null) {
             missing.add("whisper_preprocessor.pte");
         }
@@ -287,15 +329,36 @@ public final class ModelPackageImporter {
             File staging,
             ProgressListener progress
     ) throws IOException {
-        boolean liteRt = selection.model.entry.getName()
-                .toLowerCase(Locale.ROOT)
-                .endsWith(".tflite");
-        extract(
-                zip,
-                selection.model.entry,
-                new File(staging, liteRt ? "model.tflite" : "model.pte"),
-                MAX_EXTRACTED_FILE_BYTES
-        );
+        if (selection.encoder != null) {
+            extract(
+                    zip,
+                    selection.encoder.entry,
+                    new File(staging, "encoder.pte"),
+                    MAX_EXTRACTED_FILE_BYTES
+            );
+            extract(
+                    zip,
+                    selection.decoderPrefill.entry,
+                    new File(staging, "decoder_prefill.pte"),
+                    MAX_EXTRACTED_FILE_BYTES
+            );
+            extract(
+                    zip,
+                    selection.decoderDecode.entry,
+                    new File(staging, "decoder_decode.pte"),
+                    MAX_EXTRACTED_FILE_BYTES
+            );
+        } else {
+            boolean liteRt = selection.model.entry.getName()
+                    .toLowerCase(Locale.ROOT)
+                    .endsWith(".tflite");
+            extract(
+                    zip,
+                    selection.model.entry,
+                    new File(staging, liteRt ? "model.tflite" : "model.pte"),
+                    MAX_EXTRACTED_FILE_BYTES
+            );
+        }
         progress.onProgress("Extracting the model", 0.62f);
 
         if (selection.preprocessor != null) {
@@ -359,16 +422,32 @@ public final class ModelPackageImporter {
             throw new IOException("The model directory is missing");
         }
         List<String> missing = new ArrayList<>();
-        String modelName = AdapterRegistry.LITERT_ID.equals(descriptor.adapterId())
-                ? "model.tflite"
-                : "model.pte";
-        if (!nonEmptyFile(directory, modelName)) {
-            missing.add(modelName);
+        boolean staticCache = AdapterRegistry.EXECUTORCH_STATIC_CACHE_ID.equals(
+                descriptor.adapterId()
+        );
+        if (staticCache) {
+            for (String name : new String[]{
+                    "encoder.pte",
+                    "decoder_prefill.pte",
+                    "decoder_decode.pte"
+            }) {
+                if (!nonEmptyFile(directory, name)) {
+                    missing.add(name);
+                }
+            }
+        } else {
+            String modelName = AdapterRegistry.LITERT_ID.equals(descriptor.adapterId())
+                    ? "model.tflite"
+                    : "model.pte";
+            if (!nonEmptyFile(directory, modelName)) {
+                missing.add(modelName);
+            }
         }
         if (!nonEmptyFile(directory, "tokenizer.json")) {
             missing.add("tokenizer.json");
         }
-        if (AdapterRegistry.EXECUTORCH_ID.equals(descriptor.adapterId())
+        if ((AdapterRegistry.EXECUTORCH_ID.equals(descriptor.adapterId())
+                || staticCache)
                 && !nonEmptyFile(directory, "whisper_preprocessor.pte")) {
             missing.add("whisper_preprocessor.pte");
         }
@@ -500,6 +579,9 @@ public final class ModelPackageImporter {
 
     private static final class ArchiveSelection {
         Candidate model;
+        Candidate encoder;
+        Candidate decoderPrefill;
+        Candidate decoderDecode;
         Candidate preprocessor;
         Candidate tokenizer;
         final Map<String, Candidate> metadata = new LinkedHashMap<>();
