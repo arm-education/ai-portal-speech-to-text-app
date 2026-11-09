@@ -36,7 +36,7 @@ The model registry selects the supplied adapter for the chosen package. The impo
 | --- | --- | --- | --- |
 | [Whisper Tiny INT8](https://huggingface.co/Arm/whisper-tiny-int8-xnnpack-executorch) | ExecuTorch | `whisper-tiny-int8-xnnpack-executorch.zip` | Validated on an Arm64 Android phone |
 | [Whisper Small INT8](https://huggingface.co/Arm/whisper-small-int8-xnnpack-executorch) | ExecuTorch | `whisper-small-int8-xnnpack-executorch.zip` | Validated on an Arm64 Android phone |
-| [Whisper Base INT8 for Vivo X300](https://huggingface.co/Arm/whisper-base-int8-xnnpack-executorch-vivo-x300) | ExecuTorch | `whisper-base-int8-xnnpack-executorch-vivo-x300.zip` | Validated on an Arm64 Android phone |
+| [Whisper Base INT8](https://huggingface.co/Arm/whisper-base-int8-xnnpack-executorch-vivo-x300) | ExecuTorch | `whisper-base-int8-xnnpack-executorch-vivo-x300.zip` | Validated on an Arm64 Android phone |
 | [Whisper Base INT8](https://huggingface.co/Arm/whisper-base-int8-litert) | LiteRT | `whisper-base-int8-litert.zip` | Validated on an Arm64 Android phone |
 | [Whisper Medium INT8](https://huggingface.co/Arm/whisper-medium-int8-litert) | LiteRT | `whisper-medium-int8-litert.zip` | Validated on an Arm64 Android phone |
 | [Whisper Large V3 INT8](https://huggingface.co/Arm/whisper-large-v3-int8-litert) | LiteRT | `whisper-large-v3-int8-litert.zip` | Validated on an Arm64 Android phone |
