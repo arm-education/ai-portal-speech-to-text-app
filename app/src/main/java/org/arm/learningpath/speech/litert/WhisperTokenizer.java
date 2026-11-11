@@ -1,4 +1,4 @@
-package org.arm.learningpath.whisper.litert;
+package org.arm.learningpath.speech.litert;
 
 import org.json.JSONArray;
 import org.json.JSONException;

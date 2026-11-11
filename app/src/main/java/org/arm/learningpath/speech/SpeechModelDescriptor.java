@@ -1,8 +1,8 @@
-package org.arm.learningpath.whisper;
+package org.arm.learningpath.speech;
 
 import java.util.Objects;
 
-public final class WhisperModelDescriptor {
+public final class SpeechModelDescriptor {
     private final String id;
     private final String displayName;
     private final String adapterId;
@@ -12,7 +12,7 @@ public final class WhisperModelDescriptor {
     private final int vocabularySize;
     private final String configurationId;
 
-    public WhisperModelDescriptor(
+    public SpeechModelDescriptor(
             String id,
             String displayName,
             String adapterId,
@@ -33,7 +33,7 @@ public final class WhisperModelDescriptor {
         );
     }
 
-    public WhisperModelDescriptor(
+    public SpeechModelDescriptor(
             String id,
             String displayName,
             String adapterId,
@@ -48,8 +48,8 @@ public final class WhisperModelDescriptor {
         this.adapterId = requireText(adapterId, "adapterId");
         this.sourceId = sourceId == null ? "" : sourceId;
         this.packageHint = requireText(packageHint, "packageHint");
-        if (melBins <= 0 || vocabularySize <= 0) {
-            throw new IllegalArgumentException("Model dimensions must be positive");
+        if (melBins < 0 || vocabularySize <= 0) {
+            throw new IllegalArgumentException("Mel bins must be nonnegative and vocabulary size positive");
         }
         this.melBins = melBins;
         this.vocabularySize = vocabularySize;
@@ -77,6 +77,7 @@ public final class WhisperModelDescriptor {
         return packageHint;
     }
 
+    /** Number of Mel bins, or zero when the model takes a waveform directly. */
     public int melBins() {
         return melBins;
     }
@@ -97,8 +98,8 @@ public final class WhisperModelDescriptor {
 
     @Override
     public boolean equals(Object value) {
-        return value instanceof WhisperModelDescriptor
-                && id.equals(((WhisperModelDescriptor) value).id);
+        return value instanceof SpeechModelDescriptor
+                && id.equals(((SpeechModelDescriptor) value).id);
     }
 
     @Override

@@ -1,6 +1,6 @@
-package org.arm.learningpath.whisper;
+package org.arm.learningpath.speech;
 
-import org.arm.learningpath.whisper.litert.LiteRtWhisperAdapter;
+import org.arm.learningpath.speech.litert.LiteRtWhisperAdapter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +11,7 @@ import java.util.Map;
 public final class AdapterRegistry implements AutoCloseable {
     public static final String EXECUTORCH_ID = "executorch";
     public static final String EXECUTORCH_SPLIT_ID = "executorch-split";
+    public static final String EXECUTORCH_CTC_ID = "executorch-ctc";
     public static final String LITERT_ID = "litert";
 
     private final Map<String, SpeechToTextAdapter> adapters;
@@ -20,6 +21,7 @@ public final class AdapterRegistry implements AutoCloseable {
         adapters.add(new ExecuTorchWhisperAdapter());
         adapters.add(new ExecuTorchSplitWhisperAdapter());
         adapters.add(new LiteRtWhisperAdapter());
+        adapters.add(new ExecuTorchCtcAdapter());
         adapters.addAll(GeneratedAdapterRegistry.adapters());
 
         Map<String, SpeechToTextAdapter> registered = new LinkedHashMap<>();
@@ -34,7 +36,7 @@ public final class AdapterRegistry implements AutoCloseable {
         this.adapters = Collections.unmodifiableMap(registered);
     }
 
-    public SpeechToTextAdapter forModel(WhisperModelDescriptor descriptor) {
+    public SpeechToTextAdapter forModel(SpeechModelDescriptor descriptor) {
         if (descriptor == null) {
             throw new IllegalArgumentException("Select a model first");
         }

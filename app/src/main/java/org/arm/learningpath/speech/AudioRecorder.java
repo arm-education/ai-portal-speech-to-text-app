@@ -1,4 +1,4 @@
-package org.arm.learningpath.whisper;
+package org.arm.learningpath.speech;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -7,7 +7,7 @@ import android.media.MediaRecorder;
 import java.io.IOException;
 import java.util.Arrays;
 
-/** Start/stop microphone capture for the 16 kHz waveform expected by Whisper. */
+/** Start/stop microphone capture for the 16 kHz waveform expected by speech models. */
 public final class AudioRecorder {
     public static final int SAMPLE_RATE = 16000;
     public static final int MAX_DURATION_SECONDS = 30;
@@ -69,7 +69,7 @@ public final class AudioRecorder {
                 throw new IOException("Android could not start the microphone", error);
             }
             recording = true;
-            captureThread = new Thread(this::captureLoop, "whisper-audio-capture");
+            captureThread = new Thread(this::captureLoop, "speech-audio-capture");
             captureThread.start();
         }
     }
@@ -138,17 +138,6 @@ public final class AudioRecorder {
             }
         }
         return peak;
-    }
-
-    public static float rms(float[] audio) {
-        if (audio == null || audio.length == 0) {
-            return 0.0f;
-        }
-        double sumSquares = 0.0;
-        for (float sample : audio) {
-            sumSquares += sample * sample;
-        }
-        return (float) Math.sqrt(sumSquares / audio.length);
     }
 
     private void captureLoop() {

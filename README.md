@@ -1,11 +1,12 @@
-# Whisper Journal Android application
+# Speech Journal Android application
 
 This example application accompanies the [Arm Learning Path for running speech recognition models from the Arm AI Portal](https://learn.arm.com/learning-paths/mobile-graphics-and-gaming/ai-portal-audio-to-text). It is intended for learning how models run on devices and is not a reference production application.
 
-This Android application records speech and transcribes it locally on an Arm64 phone or emulator. It includes three supplied adapters:
+This Android application records speech and transcribes it locally on an Arm64 phone or emulator. It includes four supplied adapters:
 
 - `ExecuTorchWhisperAdapter` runs the Whisper Tiny and Small INT8 packages with ExecuTorch and XNNPACK.
-- `ExecuTorchSplitWhisperAdapter` runs a Whisper Base INT8 model split across three separate .pte files (encoder, prefill, and decode), using ExecuTorch and XNNPACK.
+- `ExecuTorchSplitWhisperAdapter` runs a Whisper Base INT8 model split across three separate `.pte` files (encoder, prefill, and decode), using ExecuTorch and XNNPACK.
+- `ExecuTorchCtcAdapter` runs the Conformer CTC INT8 package with ExecuTorch and XNNPACK, using waveform input and greedy CTC decoding.
 - `LiteRtWhisperAdapter` provides execution profiles for the Whisper Base, Medium, and Large V3 INT8 packages with LiteRT and XNNPACK.
 
 The application imports model packages at run time, so the model files are not stored in the Android application package (APK).
@@ -13,12 +14,12 @@ The application imports model packages at run time, so the model files are not s
 ## Application views
 
 <p align="center">
-  <img src="images/whisper-startup.png" width="31%" alt="Whisper Journal before a model package has been imported">
-  <img src="images/whisper-model-ready.png" width="31%" alt="Whisper Journal with a speech recognition model ready to record">
-  <img src="images/whisper-generated.png" width="31%" alt="Whisper Journal displaying a transcript generated locally on Android">
+  <img src="images/speech-startup.png" width="31%" alt="Speech Journal before a model package has been imported">
+  <img src="images/speech-model-ready.png" width="31%" alt="Speech Journal with a speech recognition model ready to record">
+  <img src="images/speech-generated.png" width="31%" alt="Speech Journal displaying a transcript generated locally on Android">
 </p>
 
-Whisper Journal records up to 30 seconds of mono audio and performs English transcription on the device. The recording and transcript remain local.
+Speech Journal records up to 30 seconds of mono audio and performs English transcription on the device. The recording and transcript remain local.
 
 ## Requirements
 
@@ -40,6 +41,7 @@ The model registry selects the supplied adapter for the chosen package. The impo
 | [Whisper Base INT8](https://huggingface.co/Arm/whisper-base-int8-litert) | LiteRT | `whisper-base-int8-litert.zip` | Validated on an Arm64 Android phone |
 | [Whisper Medium INT8](https://huggingface.co/Arm/whisper-medium-int8-litert) | LiteRT | `whisper-medium-int8-litert.zip` | Validated on an Arm64 Android phone |
 | [Whisper Large V3 INT8](https://huggingface.co/Arm/whisper-large-v3-int8-litert) | LiteRT | `whisper-large-v3-int8-litert.zip` | Validated on an Arm64 Android phone |
+| [Conformer CTC INT8](https://huggingface.co/Arm/conformer-ctc-int8-xnnpack-executorch-vivo-x300) | ExecuTorch | `conformer-ctc-int8-xnnpack-executorch-vivo-x300.zip` | Validated on an Arm64 Android phone |
 
 ## Download a model
 
@@ -83,7 +85,9 @@ python download_model.py --repo-id $MODEL_ID
 Write-Output "Model package: $MODEL_PACKAGE"
 ```
 
-For an ExecuTorch model, the script downloads the INT8 model and audio preprocessor, adds `tokenizer.json` from the matching OpenAI Whisper repository, and creates one ZIP package. For a LiteRT model, it downloads the INT8 model, tokenizer, and configuration files and creates the ZIP package.
+For ExecuTorch Whisper models, the script packages the INT8 model programs, audio preprocessor, and matching `tokenizer.json` in one ZIP. For LiteRT models, it packages the INT8 model, tokenizer, and configuration files.
+
+For Conformer CTC, the script packages Arm's `model.pte` with `config.json`, `preprocessor_config.json`, `tokenizer_config.json`, `special_tokens_map.json`, and `vocab.json` from the original [facebook/wav2vec2-conformer-rel-pos-large-960h-ft model](https://huggingface.co/facebook/wav2vec2-conformer-rel-pos-large-960h-ft). The upstream download is limited to these five JSON files.
 
 Copy the package to the Android **Downloads** directory through ADB. Run this command in the same terminal session:
 
@@ -109,12 +113,12 @@ The application stores the imported model in its private files directory. Cleari
 
 ## Register another compatible model
 
-A model that matches an existing adapter's package, callable methods, tensor shapes, preprocessing, tokenizer, and decoder contract can reuse that adapter after you add a `WhisperModelDescriptor` to `ModelRegistry.java`.
+A model that matches an existing adapter's package, callable methods, tensor shapes, preprocessing, tokenizer, and decoder contract can reuse that adapter. Add a `SpeechModelDescriptor` to the list returned by `CompatibleModelRegistry.models()`.
 
 For example, a LiteRT Whisper package can be described with:
 
 ```java
-new WhisperModelDescriptor(
+new SpeechModelDescriptor(
         "my-whisper-litert",
         "My Whisper model - LiteRT",
         AdapterRegistry.LITERT_ID,
@@ -126,9 +130,11 @@ new WhisperModelDescriptor(
 )
 ```
 
-Import `org.arm.learningpath.whisper.litert.LiteRtWhisperAdapter`, then add the descriptor to the list returned by `CompatibleModelRegistry.models()`. Set `configurationId` to an existing adapter configuration only when the complete execution contract matches. Rebuild the APK and test the package on an Arm64 Android device.
+Import `org.arm.learningpath.speech.litert.LiteRtWhisperAdapter`, then add the descriptor to the list returned by `CompatibleModelRegistry.models()`. Set `configurationId` to an existing adapter configuration only when the complete execution contract matches. Rebuild the APK and test the package on an Arm64 Android device.
 
 This route reuses an existing adapter. It is appropriate only when the complete package and inference contract match that adapter.
+
+For models that take waveform input directly, set `melBins` to `0` in the descriptor. The registered Conformer package uses `melBins = 0`, a vocabulary size of `32`, and `ExecuTorchCtcAdapter.CONFIG_CONFORMER_LARGE` as its configuration ID.
 
 ## Extend the application
 

@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "org.arm.learningpath.whisper"
+    namespace = "org.arm.learningpath.speech"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "org.arm.learningpath.whisper"
+        applicationId = "org.arm.learningpath.speech"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
@@ -27,6 +27,7 @@ android {
 dependencies {
     implementation("org.pytorch:executorch-android:1.3.1")
     implementation("com.google.ai.edge.litert:litert:2.1.6")
+    testImplementation("junit:junit:4.13.2")
 }
 
 apply(from = "generated-runtime-dependencies.gradle.kts")

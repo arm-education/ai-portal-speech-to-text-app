@@ -1,10 +1,10 @@
-package org.arm.learningpath.whisper.litert;
+package org.arm.learningpath.speech.litert;
 
-import org.arm.learningpath.whisper.AdapterRegistry;
-import org.arm.learningpath.whisper.ProgressListener;
-import org.arm.learningpath.whisper.SpeechToTextAdapter;
-import org.arm.learningpath.whisper.TranscriptionResult;
-import org.arm.learningpath.whisper.WhisperModelDescriptor;
+import org.arm.learningpath.speech.AdapterRegistry;
+import org.arm.learningpath.speech.ProgressListener;
+import org.arm.learningpath.speech.SpeechToTextAdapter;
+import org.arm.learningpath.speech.TranscriptionResult;
+import org.arm.learningpath.speech.SpeechModelDescriptor;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.Tensor;
@@ -34,7 +34,7 @@ public final class LiteRtWhisperAdapter implements SpeechToTextAdapter {
     private static final int MAX_PACKAGE_DEPTH = 8;
 
     private Interpreter interpreter;
-    private WhisperModelDescriptor descriptor;
+    private SpeechModelDescriptor descriptor;
     private DecoderProfile profile;
     private ModelLayout layout;
     private WhisperTokenizer tokenizer;
@@ -46,7 +46,7 @@ public final class LiteRtWhisperAdapter implements SpeechToTextAdapter {
 
     @Override
     public synchronized void load(
-            WhisperModelDescriptor selectedDescriptor,
+            SpeechModelDescriptor selectedDescriptor,
             File modelDirectory
     ) throws Exception {
         close();
@@ -129,7 +129,6 @@ public final class LiteRtWhisperAdapter implements SpeechToTextAdapter {
         return new TranscriptionResult(
                 text,
                 elapsedMillis,
-                generatedTokens.size(),
                 "LiteRT / XNNPACK"
         );
     }
@@ -709,7 +708,7 @@ public final class LiteRtWhisperAdapter implements SpeechToTextAdapter {
             return modelWidth / heads;
         }
 
-        static DecoderProfile forModel(WhisperModelDescriptor descriptor) {
+        static DecoderProfile forModel(SpeechModelDescriptor descriptor) {
             DecoderProfile result;
             switch (descriptor.configurationId()) {
                 case CONFIG_WHISPER_BASE:

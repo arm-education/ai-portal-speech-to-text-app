@@ -1,4 +1,4 @@
-package org.arm.learningpath.whisper;
+package org.arm.learningpath.speech;
 
 @FunctionalInterface
 public interface ProgressListener {

@@ -1,4 +1,4 @@
-package org.arm.learningpath.whisper;
+package org.arm.learningpath.speech;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

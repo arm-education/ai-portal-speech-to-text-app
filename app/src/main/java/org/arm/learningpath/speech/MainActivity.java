@@ -1,4 +1,4 @@
-package org.arm.learningpath.whisper;
+package org.arm.learningpath.speech;
 
 import android.Manifest;
 import android.app.Activity;
@@ -45,7 +45,7 @@ public final class MainActivity extends Activity {
     private static final int MICROPHONE_PERMISSION_REQUEST = 2103;
     private static final int MENU_CLEAR_ENTRY = 2201;
     private static final long MAX_RECORDING_MILLIS = 30_000L;
-    private static final String PREFERENCES_NAME = "whisper-journal";
+    private static final String PREFERENCES_NAME = "speech-journal";
     private static final String PREF_SELECTED_MODEL = "selected-model";
     private static final String LEGACY_TINY_MODEL_ID = "whisper-tiny-executorch-v2";
     private static final String LEGACY_SMALL_MODEL_ID = "whisper-small-executorch-v2";
@@ -59,8 +59,8 @@ public final class MainActivity extends Activity {
     private ModelPackageImporter modelImporter;
     private AudioRecorder audioRecorder;
     private SharedPreferences preferences;
-    private List<WhisperModelDescriptor> models;
-    private WhisperModelDescriptor selectedModel;
+    private List<SpeechModelDescriptor> models;
+    private SpeechModelDescriptor selectedModel;
     private SpeechToTextAdapter activeAdapter;
 
     private ScrollView screen;
@@ -193,7 +193,7 @@ public final class MainActivity extends Activity {
         }
         selectedModel = models.get(selectedIndex);
 
-        ArrayAdapter<WhisperModelDescriptor> spinnerAdapter = new ArrayAdapter<>(
+        ArrayAdapter<SpeechModelDescriptor> spinnerAdapter = new ArrayAdapter<>(
                 this,
                 R.layout.spinner_model_item,
                 models
@@ -203,7 +203,7 @@ public final class MainActivity extends Activity {
         modelSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                WhisperModelDescriptor model = models.get(position);
+                SpeechModelDescriptor model = models.get(position);
                 if (model.equals(selectedModel)) {
                     return;
                 }
@@ -225,7 +225,7 @@ public final class MainActivity extends Activity {
     }
 
     private void loadSelectedModelIfInstalled(SpeechToTextAdapter previousAdapter) {
-        WhisperModelDescriptor model = selectedModel;
+        SpeechModelDescriptor model = selectedModel;
         if (model == null) {
             return;
         }
@@ -319,7 +319,7 @@ public final class MainActivity extends Activity {
     }
 
     private void importSelectedModel(Uri packageUri) {
-        WhisperModelDescriptor model = selectedModel;
+        SpeechModelDescriptor model = selectedModel;
         if (model == null) {
             return;
         }
@@ -612,7 +612,7 @@ public final class MainActivity extends Activity {
         }
         ClipboardManager clipboard = getSystemService(ClipboardManager.class);
         if (clipboard != null) {
-            clipboard.setPrimaryClip(ClipData.newPlainText("Whisper Journal entry", transcript));
+            clipboard.setPrimaryClip(ClipData.newPlainText("Speech Journal entry", transcript));
             Toast.makeText(this, "Entry copied", Toast.LENGTH_SHORT).show();
         }
     }
@@ -625,7 +625,7 @@ public final class MainActivity extends Activity {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("text/plain");
-        intent.putExtra(Intent.EXTRA_TITLE, "whisper-journal-" + timestamp + ".txt");
+        intent.putExtra(Intent.EXTRA_TITLE, "speech-journal-" + timestamp + ".txt");
         startActivityForResult(intent, SAVE_TRANSCRIPT_REQUEST);
     }
 
@@ -719,7 +719,7 @@ public final class MainActivity extends Activity {
     }
 
     private void updateModelLabels(boolean loaded) {
-        WhisperModelDescriptor model = selectedModel;
+        SpeechModelDescriptor model = selectedModel;
         if (model == null) {
             return;
         }

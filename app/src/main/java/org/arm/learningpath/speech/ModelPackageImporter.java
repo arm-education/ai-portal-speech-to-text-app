@@ -1,4 +1,4 @@
-package org.arm.learningpath.whisper;
+package org.arm.learningpath.speech;
 
 import android.content.Context;
 import android.net.Uri;
@@ -24,7 +24,7 @@ import java.util.zip.ZipFile;
 
 /** Imports a selected model ZIP into private app storage without exposing partial installs. */
 public final class ModelPackageImporter {
-    private static final String TAG = "WhisperModelImport";
+    private static final String TAG = "SpeechModelImport";
     private static final int BUFFER_SIZE = 1024 * 1024;
     private static final long MAX_ARCHIVE_BYTES = 4L * 1024L * 1024L * 1024L;
     private static final long MAX_EXTRACTED_FILE_BYTES = 3L * 1024L * 1024L * 1024L;
@@ -33,6 +33,12 @@ public final class ModelPackageImporter {
     private static final long MAX_METADATA_BYTES = 16L * 1024L * 1024L;
     private static final int MAX_ARCHIVE_ENTRIES = 10_000;
     private static final long TINY_MODEL_MAX_BYTES = 250L * 1024L * 1024L;
+    private static final String[] CTC_REQUIRED_FILES = {
+            "config.json",
+            "preprocessor_config.json",
+            "tokenizer_config.json",
+            "vocab.json"
+    };
 
     private final Context context;
     private final File modelsDirectory;
@@ -48,7 +54,7 @@ public final class ModelPackageImporter {
 
     public synchronized File importPackage(
             Uri archiveUri,
-            WhisperModelDescriptor descriptor,
+            SpeechModelDescriptor descriptor,
             ProgressListener progressListener
     ) throws IOException {
         if (archiveUri == null || descriptor == null) {
@@ -62,7 +68,7 @@ public final class ModelPackageImporter {
         String operationId = UUID.randomUUID().toString();
         File localArchive = new File(
                 context.getCacheDir(),
-                "whisper-model-import-" + operationId + ".zip"
+                "speech-model-import-" + operationId + ".zip"
         );
         File staging = new File(modelsDirectory, ".import-" + operationId);
         if (!staging.mkdir()) {
@@ -95,14 +101,14 @@ public final class ModelPackageImporter {
         }
     }
 
-    public File modelDirectory(WhisperModelDescriptor descriptor) {
+    public File modelDirectory(SpeechModelDescriptor descriptor) {
         if (descriptor == null || !descriptor.id().matches("[A-Za-z0-9._-]+")) {
             throw new IllegalArgumentException("Invalid model identifier");
         }
         return new File(modelsDirectory, storageKey(descriptor));
     }
 
-    public boolean isInstalled(WhisperModelDescriptor descriptor) {
+    public boolean isInstalled(SpeechModelDescriptor descriptor) {
         File directory = modelDirectory(descriptor);
         try {
             validateInstalledFiles(directory, descriptor);
@@ -126,9 +132,10 @@ public final class ModelPackageImporter {
 
     private ArchiveSelection selectEntries(
             ZipFile zip,
-            WhisperModelDescriptor descriptor
+            SpeechModelDescriptor descriptor
     ) throws IOException {
         ArchiveSelection selection = new ArchiveSelection();
+        boolean ctcModel = AdapterRegistry.EXECUTORCH_CTC_ID.equals(descriptor.adapterId());
         Enumeration<? extends ZipEntry> entries = zip.entries();
         int entryCount = 0;
         while (entries.hasMoreElements()) {
@@ -143,7 +150,27 @@ public final class ModelPackageImporter {
 
             String path = normalize(entry.getName());
             String baseName = baseName(path);
-            if (AdapterRegistry.EXECUTORCH_SPLIT_ID.equals(
+            if (ctcModel) {
+                if (baseName.equals("model.pte")) {
+                    selection.model = unique(selection.model, entry);
+                } else if (baseName.endsWith(".pte") || baseName.endsWith(".tflite")) {
+                    throw new IOException(
+                            "The CTC package must contain only model.pte as its model program. "
+                                    + "Unexpected file: " + entry.getName()
+                    );
+                } else if (isCtcSupportFile(baseName)) {
+                    selection.ctcFiles.put(
+                            baseName,
+                            unique(selection.ctcFiles.get(baseName), entry)
+                    );
+                } else if (baseName.equals("metadata.yaml")) {
+                    selection.metadata.put(
+                            baseName,
+                            unique(selection.metadata.get(baseName), entry)
+                    );
+                }
+                continue;
+            } else if (AdapterRegistry.EXECUTORCH_SPLIT_ID.equals(
                     descriptor.adapterId()
             )) {
                 if (baseName.equals("whisper_base_encoder_s1500_static.pte")) {
@@ -212,12 +239,13 @@ public final class ModelPackageImporter {
 
     private static void validateSelection(
             ArchiveSelection selection,
-            WhisperModelDescriptor descriptor
+            SpeechModelDescriptor descriptor
     ) throws IOException {
         List<String> missing = new ArrayList<>();
         boolean splitModel = AdapterRegistry.EXECUTORCH_SPLIT_ID.equals(
                 descriptor.adapterId()
         );
+        boolean ctcModel = AdapterRegistry.EXECUTORCH_CTC_ID.equals(descriptor.adapterId());
         if (splitModel) {
             if (selection.encoder == null) {
                 missing.add("the encoder .pte");
@@ -232,10 +260,16 @@ public final class ModelPackageImporter {
             missing.add(
                     AdapterRegistry.LITERT_ID.equals(descriptor.adapterId())
                             ? "the INT8 .tflite model"
-                            : "the optimized model.pte"
+                            : (ctcModel ? "model.pte" : "the optimized model.pte")
             );
         }
-        if (selection.tokenizer == null) {
+        if (ctcModel) {
+            for (String name : CTC_REQUIRED_FILES) {
+                if (!selection.ctcFiles.containsKey(name)) {
+                    missing.add(name);
+                }
+            }
+        } else if (selection.tokenizer == null) {
             missing.add("tokenizer.json");
         }
         if ((AdapterRegistry.EXECUTORCH_ID.equals(descriptor.adapterId())
@@ -254,7 +288,7 @@ public final class ModelPackageImporter {
 
     private static void validateLiteRtIdentity(
             ArchiveSelection selection,
-            WhisperModelDescriptor descriptor
+            SpeechModelDescriptor descriptor
     ) throws IOException {
         if (!AdapterRegistry.LITERT_ID.equals(descriptor.adapterId())
                 || selection.model == null) {
@@ -283,7 +317,7 @@ public final class ModelPackageImporter {
     private static void validateExecuTorchIdentity(
             ArchiveSelection selection,
             File staging,
-            WhisperModelDescriptor descriptor
+            SpeechModelDescriptor descriptor
     ) throws IOException {
         if (!AdapterRegistry.EXECUTORCH_ID.equals(descriptor.adapterId())
                 || selection.model == null) {
@@ -369,12 +403,24 @@ public final class ModelPackageImporter {
                     MAX_PREPROCESSOR_BYTES
             );
         }
-        extract(
-                zip,
-                selection.tokenizer.entry,
-                new File(staging, "tokenizer.json"),
-                MAX_TOKENIZER_BYTES
-        );
+        if (selection.tokenizer != null) {
+            extract(
+                    zip,
+                    selection.tokenizer.entry,
+                    new File(staging, "tokenizer.json"),
+                    MAX_TOKENIZER_BYTES
+            );
+        }
+        for (Map.Entry<String, Candidate> item : selection.ctcFiles.entrySet()) {
+            extract(
+                    zip,
+                    item.getValue().entry,
+                    new File(staging, item.getKey()),
+                    item.getKey().equals("vocab.json")
+                            ? MAX_TOKENIZER_BYTES
+                            : MAX_METADATA_BYTES
+            );
+        }
         progress.onProgress("Extracting tokenizer files", 0.82f);
 
         for (Map.Entry<String, Candidate> item : selection.metadata.entrySet()) {
@@ -416,7 +462,7 @@ public final class ModelPackageImporter {
 
     private static void validateInstalledFiles(
             File directory,
-            WhisperModelDescriptor descriptor
+            SpeechModelDescriptor descriptor
     ) throws IOException {
         if (directory == null || !directory.isDirectory()) {
             throw new IOException("The model directory is missing");
@@ -443,7 +489,13 @@ public final class ModelPackageImporter {
                 missing.add(modelName);
             }
         }
-        if (!nonEmptyFile(directory, "tokenizer.json")) {
+        if (AdapterRegistry.EXECUTORCH_CTC_ID.equals(descriptor.adapterId())) {
+            for (String name : CTC_REQUIRED_FILES) {
+                if (!nonEmptyFile(directory, name)) {
+                    missing.add(name);
+                }
+            }
+        } else if (!nonEmptyFile(directory, "tokenizer.json")) {
             missing.add("tokenizer.json");
         }
         if ((AdapterRegistry.EXECUTORCH_ID.equals(descriptor.adapterId())
@@ -494,6 +546,25 @@ public final class ModelPackageImporter {
         return current;
     }
 
+    private static Candidate unique(Candidate current, ZipEntry entry) throws IOException {
+        if (current != null) {
+            throw new IOException(
+                    "The ZIP contains multiple copies of " + baseName(normalize(entry.getName()))
+                            + ". Select a package containing only one model."
+            );
+        }
+        return new Candidate(entry, 100);
+    }
+
+    private static boolean isCtcSupportFile(String baseName) {
+        for (String name : CTC_REQUIRED_FILES) {
+            if (name.equals(baseName)) {
+                return true;
+            }
+        }
+        return baseName.equals("special_tokens_map.json");
+    }
+
     private static boolean isPreservedMetadata(String baseName) {
         return baseName.equals("processor_config.json")
                 || baseName.equals("tokenizer_config.json")
@@ -523,7 +594,7 @@ public final class ModelPackageImporter {
         return file.isFile() && file.length() > 0;
     }
 
-    private static String storageKey(WhisperModelDescriptor descriptor) {
+    private static String storageKey(SpeechModelDescriptor descriptor) {
         // Keep the original locations so an app upgrade can reuse imported models.
         if ("whisper-tiny-int8-xnnpack-executorch".equals(descriptor.id())) {
             return "tiny";
@@ -584,6 +655,7 @@ public final class ModelPackageImporter {
         Candidate decoderDecode;
         Candidate preprocessor;
         Candidate tokenizer;
+        final Map<String, Candidate> ctcFiles = new LinkedHashMap<>();
         final Map<String, Candidate> metadata = new LinkedHashMap<>();
     }
 }

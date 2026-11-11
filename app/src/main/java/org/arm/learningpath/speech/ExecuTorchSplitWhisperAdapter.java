@@ -1,4 +1,4 @@
-package org.arm.learningpath.whisper;
+package org.arm.learningpath.speech;
 
 import android.util.Log;
 
@@ -65,7 +65,7 @@ public final class ExecuTorchSplitWhisperAdapter implements SpeechToTextAdapter 
 
     @Override
     public synchronized void load(
-            WhisperModelDescriptor descriptor,
+            SpeechModelDescriptor descriptor,
             File modelDirectory
     ) throws Exception {
         if (descriptor == null || !id().equals(descriptor.adapterId())) {
@@ -212,7 +212,6 @@ public final class ExecuTorchSplitWhisperAdapter implements SpeechToTextAdapter 
         return new TranscriptionResult(
                 tokenizer.decode(tokens),
                 elapsedMillis,
-                tokens.size(),
                 backend
         );
     }

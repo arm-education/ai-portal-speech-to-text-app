@@ -48,6 +48,11 @@ VERIFIED_MODELS = {
         "tokenizer_repo": "openai/whisper-base",
         "tokenizer": "tokenizer.json",
     },
+    "Arm/conformer-ctc-int8-xnnpack-executorch-vivo-x300": {
+        "runtime": "executorch-ctc",
+        "model": "model.pte",
+        "support_repo": "facebook/wav2vec2-conformer-rel-pos-large-960h-ft",
+    },
 }
 
 MODEL_SUFFIXES = {".pte", ".tflite"}
@@ -67,6 +72,14 @@ LITERT_SUPPORT_FILES = (
 PACKAGE_METADATA = (
     "config.yaml",
     "metadata.yaml",
+)
+
+CTC_SUPPORT_FILES = (
+    "config.json",
+    "preprocessor_config.json",
+    "tokenizer_config.json",
+    "special_tokens_map.json",
+    "vocab.json",
 )
 
 
@@ -291,9 +304,29 @@ def collect_split_executorch_package(
     return files
 
 
+def collect_ctc_executorch_package(
+    snapshot_dir: Path,
+    support_snapshot_dir: Path,
+    model_filename: str,
+) -> list[tuple[Path, str]]:
+    files = [(repository_file(snapshot_dir, model_filename), "model.pte")]
+    files.extend(
+        (repository_file(support_snapshot_dir, name), name)
+        for name in CTC_SUPPORT_FILES
+    )
+    for path, _ in files:
+        if not path.is_file():
+            raise SystemExit(f"Missing ExecuTorch CTC package file: {path}")
+    for name in PACKAGE_METADATA:
+        path = snapshot_dir / name
+        if path.is_file():
+            files.append((path, name))
+    return files
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Download and package a Whisper model for Whisper Journal."
+        description="Download and package a speech recognition model for Speech Journal."
     )
     parser.add_argument("--repo-id", required=True, help="Hugging Face repository ID")
     parser.add_argument(
@@ -410,6 +443,33 @@ def main() -> None:
             preprocessor_snapshot_dir,
             tokenizer_snapshot_dir,
             model,
+        )
+    elif model["runtime"] == "executorch-ctc":
+        if args.filename:
+            raise SystemExit(
+                "--filename is not supported for the Conformer CTC model."
+            )
+        print(
+            f"Downloading {args.repo_id}/{model['model']} to {snapshot_dir} ...",
+            file=output_stream,
+        )
+        snapshot_download(
+            repo_id=args.repo_id,
+            local_dir=snapshot_dir,
+            allow_patterns=[model["model"], *PACKAGE_METADATA],
+        )
+
+        support_repo = model["support_repo"]
+        support_snapshot_dir = output_dir / support_repo.replace("/", "__")
+        snapshot_download(
+            repo_id=support_repo,
+            local_dir=support_snapshot_dir,
+            allow_patterns=list(CTC_SUPPORT_FILES),
+        )
+        files = collect_ctc_executorch_package(
+            snapshot_dir,
+            support_snapshot_dir,
+            model["model"],
         )
     else:
         raise SystemExit(f"Unsupported verified model runtime: {model['runtime']}")

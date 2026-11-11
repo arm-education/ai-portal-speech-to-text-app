@@ -20,7 +20,7 @@ def main() -> None:
 
     project_root = Path(__file__).resolve().parent.parent
     source_directory = project_root / (
-        "app/src/main/java/org/arm/learningpath/whisper"
+        "app/src/main/java/org/arm/learningpath/speech"
     )
     registry = source_directory / "GeneratedAdapterRegistry.java"
     dependencies = project_root / "app/generated-runtime-dependencies.gradle.kts"
@@ -44,8 +44,16 @@ def main() -> None:
         if "implements SpeechToTextAdapter" not in adapter_source:
             errors.append("The generated class must implement SpeechToTextAdapter")
 
-    if registry.is_file() and "return List.of();" in registry.read_text(encoding="utf-8"):
-        errors.append("GeneratedAdapterRegistry does not register an adapter or model")
+    if registry.is_file():
+        registry_source = registry.read_text(encoding="utf-8")
+        for method, entry in (("adapters", "an adapter"), ("models", "a model")):
+            body = re.search(
+                rf"\b{method}\s*\(\s*\)\s*\{{(.*?)\}}",
+                registry_source,
+                re.DOTALL,
+            )
+            if body is None or re.search(r"\breturn\s+List\.of\s*\(\s*\)\s*;", body[1]):
+                errors.append(f"GeneratedAdapterRegistry.{method}() does not register {entry}")
 
     if errors:
         print("Generated adapter validation failed:")

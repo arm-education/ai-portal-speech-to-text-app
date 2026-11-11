@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "WhisperJournal"
+rootProject.name = "SpeechJournal"
 include(":app")

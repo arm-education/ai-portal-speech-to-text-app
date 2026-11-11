@@ -1,4 +1,4 @@
-package org.arm.learningpath.whisper.litert;
+package org.arm.learningpath.speech.litert;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

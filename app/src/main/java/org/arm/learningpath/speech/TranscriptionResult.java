@@ -1,20 +1,17 @@
-package org.arm.learningpath.whisper;
+package org.arm.learningpath.speech;
 
 public final class TranscriptionResult {
     private final String text;
     private final long elapsedMillis;
-    private final int tokenCount;
     private final String backend;
 
     public TranscriptionResult(
             String text,
             long elapsedMillis,
-            int tokenCount,
             String backend
     ) {
         this.text = text == null ? "" : text;
         this.elapsedMillis = elapsedMillis;
-        this.tokenCount = tokenCount;
         this.backend = backend == null ? "" : backend;
     }
 
@@ -24,10 +21,6 @@ public final class TranscriptionResult {
 
     public long elapsedMillis() {
         return elapsedMillis;
-    }
-
-    public int tokenCount() {
-        return tokenCount;
     }
 
     public String backend() {

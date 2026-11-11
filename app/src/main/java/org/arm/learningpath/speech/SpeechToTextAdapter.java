@@ -1,4 +1,4 @@
-package org.arm.learningpath.whisper;
+package org.arm.learningpath.speech;
 
 import java.io.File;
 
@@ -9,7 +9,7 @@ public interface SpeechToTextAdapter extends AutoCloseable {
     /**
      * Loads the selected package. Calling this again replaces the currently loaded model.
      */
-    void load(WhisperModelDescriptor descriptor, File modelDirectory) throws Exception;
+    void load(SpeechModelDescriptor descriptor, File modelDirectory) throws Exception;
 
     boolean isLoaded();
 
